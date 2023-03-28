@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StrategyPattern.Models;
+using StrategyPattern.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,20 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<AppIdenitytDbContext>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IProductRepository>(sp =>
+{
+    var httpContext=sp.GetRequiredService<IHttpContextAccessor>();
+    var claim= httpContext.HttpContext.User.Claims.Where(x=>x.Type==Settings.CalimDatabaseType).FirstOrDefault();
+    var context = sp.GetRequiredService<AppIdenitytDbContext>();
+    if (claim == null) return new ProductRepositoryFromSqlServer(context);
+    var databaseType=(DatabaseType)int.Parse(claim.Type);
+    return databaseType switch
+    {
+        DatabaseType.SqlServer => new ProductRepositoryFromSqlServer(context),
+        DatabaseType.MongoDb => new ProductRepositoryFromMongoDb(builder.Configuration),
+    };
+});
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {

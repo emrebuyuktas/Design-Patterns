@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ObserverPattern.Models;
 using System;
+using System.Reflection;
+using ObserverPattern.Observer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,15 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<AppIdenitytDbContext>();
+// builder.Services.AddSingleton < UserObserverSubject>(sp =>
+// {
+//     UserObserverSubject observer = new();
+//     observer.RegisterObserver(new WriteConsoleUserObserver(sp));
+//     observer.RegisterObserver(new DiscountUserObserver(sp));
+//     observer.RegisterObserver(new EmailUserObserver(sp));
+//     return observer;
+// });
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {

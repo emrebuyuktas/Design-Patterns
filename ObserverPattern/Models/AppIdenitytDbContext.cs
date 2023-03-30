@@ -9,5 +9,7 @@ namespace ObserverPattern.Models
         {
 
         }
+
+        public DbSet<Discount> Discounts { get; set; }
     }
 }
